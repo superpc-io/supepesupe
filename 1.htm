@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>ブラックレインボー＆ベンチマーク（自動実行版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: black;
+    overflow-x: hidden;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 1em;
+    box-sizing: border-box;
+  }
+
+  .rainbow-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(270deg, 
+      red, orange, yellow, green, blue, indigo, violet, red);
+    background-size: 400% 100%;
+    animation: rainbowMove 10s linear infinite;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes rainbowMove {
+    0% { background-position: 0% 0; }
+    100% { background-position: 100% 0; }
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+  }
+
+  h1 {
+    margin-bottom: 0.5em;
+    font-size: 2em;
+    text-shadow: 0 0 8px #ff00ff;
+  }
+
+  .specs {
+    background: rgba(0,0,0,0.6);
+    padding: 1.2em;
+    border-radius: 10px;
+    margin-bottom: 1.5em;
+    box-shadow: 0 0 15px #00ffff;
+    text-align: left;
+    font-size: 1.1em;
+  }
+
+  .specs p {
+    margin: 0.4em 0;
+  }
+
+  .benchmark {
+    font-size: 1.4em;
+    font-weight: bold;
+    white-space: pre-line;
+    text-shadow: 0 0 5px #00ffcc;
+  }
+</style>
+</head>
+<body>
+
+<div class="rainbow-bg"></div>
+
+<div class="content">
+  <h1>ブラックレインボー＆ベンチマーク（自動実行版）</h1>
+  <div class="specs">
+    <p><strong>ユーザーエージェント:</strong> <span id="ua"></span></p>
+    <p><strong>プラットフォーム:</strong> <span id="platform"></span></p>
+    <p><strong>搭載メモリ(GB):</strong> <span id="memory"></span></p>
+    <p><strong>CPUコア数:</strong> <span id="cores"></span></p>
+    <p><strong>画面解像度:</strong> <span id="resolution"></span></p>
+    <p><strong>GPU情報:</strong> <span id="gpu"></span></p>
+  </div>
+
+  <p class="benchmark" id="benchmarkResult">ベンチマーク結果を計測中…</p>
+</div>
+
+<script>
+  document.getElementById('ua').textContent = navigator.userAgent;
+  document.getElementById('platform').textContent = navigator.platform;
+  document.getElementById('memory').textContent = navigator.deviceMemory || '不明';
+  document.getElementById('cores').textContent = navigator.hardwareConcurrency || '不明';
+  document.getElementById('resolution').textContent = `${window.screen.width} x ${window.screen.height}`;
+
+  function getGPUInfo() {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) return 'WebGL非対応';
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    if (debugInfo) {
+      return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    }
+    return '取得不可';
+  }
+  document.getElementById('gpu').textContent = getGPUInfo();
+
+  function runBenchmark() {
+    const start = performance.now();
+    let count = 0;
+
+    // 高負荷計算（1000万回ループ）
+    for(let i = 0; i < 10000000; i++) {
+      count += i;
+    }
+
+    const end = performance.now();
+    const duration = end - start;
+
+    let rank = '';
+    if (duration <= 50) rank = 'Sランク（超高速！）';
+    else if (duration <= 100) rank = 'Aランク（かなり速い）';
+    else if (duration <= 200) rank = 'Bランク（普通）';
+    else if (duration <= 400) rank = 'Cランク（やや遅め）';
+    else if (duration <= 800) rank = 'Dランク（遅い）';
+    else rank = 'Eランク（かなり遅い）';
+
+    document.getElementById('benchmarkResult').textContent = 
+      `処理時間: ${duration.toFixed(2)} ms\nランク: ${rank}`;
+  }
+
+  // ページ読み込み時に自動実行
+  window.addEventListener('load', () => {
+    runBenchmark();
+  });
+</script>
+
+</body>
+</html>

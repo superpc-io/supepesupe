@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ハッピーキャットレスキュー</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #ffe7c3, #ffc0cb);
+    }
+    h1 { margin-top: 30px; }
+    #cat {
+      font-size: 100px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    #cat:active { transform: scale(1.2); }
+    #score { font-size: 24px; margin: 20px 0; }
+    #timer { font-size: 20px; margin-bottom: 10px; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #ranking {
+      margin-top: 30px;
+      font-size: 18px;
+      background: #fff8;
+      border-radius: 10px;
+      padding: 10px;
+      display: inline-block;
+    }
+    #ranking h2 {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐱 ハッピーキャットレスキュー 🐱</h1>
+  <div id="timer">残り時間: 10秒</div>
+  <div id="score">スコア: 0</div>
+  <div id="cat">😺</div>
+  <br>
+  <button onclick="startGame()">ゲームスタート</button>
+
+  <div id="ranking">
+    <h2>🏆 ランキング</h2>
+    <ol id="ranking-list"></ol>
+  </div>
+
+  <script>
+    let score = 0;
+    let timeLeft = 10;
+    let timerId;
+    let playing = false;
+
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const catEl = document.getElementById('cat');
+    const rankingList = document.getElementById('ranking-list');
+
+    // ランキングデータを取得
+    function loadRanking() {
+      const data = JSON.parse(localStorage.getItem('catRanking')) || [];
+      return data;
+    }
+
+    // ランキングを保存
+    function saveRanking(data) {
+      localStorage.setItem('catRanking', JSON.stringify(data));
+    }
+
+    // ランキングを更新表示
+    function updateRanking() {
+      const ranking = loadRanking();
+      rankingList.innerHTML = "";
+      ranking.slice(0, 5).forEach((s, i) => {
+        const li = document.createElement("li");
+        li.textContent = s + " 点";
+        rankingList.appendChild(li);
+      });
+    }
+
+    // 猫クリック
+    catEl.addEventListener('click', () => {
+      if (!playing) return;
+      score++;
+      scoreEl.textContent = "スコア: " + score;
+      if (score % 10 === 0) {
+        catEl.textContent = "😻"; // 喜び顔
+        setTimeout(() => catEl.textContent = "😺", 300);
+      }
+    });
+
+    // ゲーム開始
+    function startGame() {
+      score = 0;
+      timeLeft = 10;
+      playing = true;
+      scoreEl.textContent = "スコア: 0";
+      timerEl.textContent = "残り時間: " + timeLeft + "秒";
+      catEl.textContent = "😺";
+      timerId = setInterval(countDown, 1000);
+    }
+
+    // カウントダウン
+    function countDown() {
+      timeLeft--;
+      timerEl.textContent = "残り時間: " + timeLeft + "秒";
+      if (timeLeft <= 0) {
+        clearInterval(timerId);
+        playing = false;
+
+        // ランキングにスコア追加
+        let ranking = loadRanking();
+        ranking.push(score);
+        ranking.sort((a, b) => b - a); // 降順
+        saveRanking(ranking);
+        updateRanking();
+
+        // 結果表示
+        if (score >= 30) {
+          catEl.textContent = "🎉🐱🎉";
+          alert("おめでとう！ハッピーキャットを救った！（スコア: " + score + "）");
+        } else {
+          catEl.textContent = "😿";
+          alert("残念！もっと救えたはず…（スコア: " + score + "）");
+        }
+      }
+    }
+
+    // ページ読み込み時にランキング表示
+    updateRanking();
+  </script>
+</body>
+</html>
